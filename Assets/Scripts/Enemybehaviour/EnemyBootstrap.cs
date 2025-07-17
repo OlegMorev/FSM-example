@@ -15,7 +15,6 @@ public class EnemyBootstrap : MonoBehaviour
     [SerializeField] int _targetID;
     [SerializeField] bool _isDead = false;
 
-    public event Action OnUpdate;
     DIContainer diContainer;
     bool isInitialized = false;
     StateMachine stateMachine;
@@ -27,14 +26,10 @@ public class EnemyBootstrap : MonoBehaviour
     }
     private void Update()
     {
-        OnUpdate?.Invoke();
+        switchingData.Update();
+        stateMachine.Update();
 
         Debug.Log(stateMachine.currentState);
-    }
-    private void OnDestroy()
-    {
-        switchingData.Dispose();
-        stateMachine.Dispose();
     }
 
     private void Initialize(DIContainer diContainer = null)
@@ -53,7 +48,7 @@ public class EnemyBootstrap : MonoBehaviour
         this.diContainer.AddDIValue<EnemyBootstrap>(this, "EnemyBootstrap");
         this.diContainer.AddDIValue<NavMeshAgent>(_agent);
 
-        stateMachine = new StateMachine(this.diContainer);
+        stateMachine = new StateMachine();
         this.diContainer.AddDIValue<StateMachine>(stateMachine, "SM");
 
 
@@ -118,6 +113,6 @@ public class EnemyBootstrap : MonoBehaviour
             });
 
 
-        switchingData.Build(stateMachine, this);
+        switchingData.Build(stateMachine);
     }
 }

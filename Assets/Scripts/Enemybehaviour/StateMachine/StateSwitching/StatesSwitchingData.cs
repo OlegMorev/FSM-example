@@ -2,11 +2,11 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class StatesSwitchingData : IDisposable
+public class StatesSwitchingData
 {
     StateMachine stateMachine;
-    EnemyBootstrap bootstrap;
     Dictionary<Type, List<SwitchingCondition>> SwitchesMatrix = new Dictionary<Type, List<SwitchingCondition>>();
+    private event Action OnUpdate;
     public BaseState startState { get; private set; }
     public StatesSwitchingData AddSwitch<T>(List<SwitchingCondition> stateConditions) where T : BaseState
     {
@@ -59,25 +59,16 @@ public class StatesSwitchingData : IDisposable
             stateMachine.SwitchState(possibleSwitch.NextState.Invoke(state));
         }
     }
-    private void UpdateSwitchCheck()
+    public void Update()
     {
-        CheckIfSystemRequiresSwitchState(stateMachine.currentState);
+        OnUpdate?.Invoke();
     }
-    public void Build(StateMachine stateMachine, EnemyBootstrap enemyBootstrap)
+    public void Build(StateMachine stateMachine)
     {
         this.stateMachine = stateMachine;
         this.stateMachine.SwitchState(startState);
 
-        bootstrap = enemyBootstrap;
-        bootstrap.OnUpdate += UpdateSwitchCheck;
-    }
 
-    public void Dispose()
-    {
-        if(bootstrap != null) bootstrap.OnUpdate -= UpdateSwitchCheck;
-    }
-    ~StatesSwitchingData()
-    {
-        Dispose();
+        OnUpdate += () => CheckIfSystemRequiresSwitchState(this.stateMachine.currentState);
     }
 }
